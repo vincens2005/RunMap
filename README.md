@@ -1,8 +1,8 @@
 # RunMap
 
-[![Main build badge](https://github.com/jeffbdye/RunMap/workflows/main/badge.svg)](https://github.com/jeffbdye/RunMap/actions?query=workflow%3Amain) - [definition](https://github.com/jeffbdye/RunMap/blob/main/.github/workflows/main.yml)
+[![Netlify Status](https://api.netlify.com/api/v1/badges/8500222e-d47b-49ed-91c1-20a9a1205cfa/deploy-status)](https://app.netlify.com/sites/runmap/deploys)
 
-See it in action at runmap (.) run.
+See it in action at [runmap.netlify.app](https://runmap.netlify.app/).
 
 ## Running map distance app
 
@@ -32,6 +32,7 @@ Use it for planning a route, or getting a sense of your route after a workout.
 
 ## Changelog
 
+- 8/9/22: Took matters into my own hands and deployed to Netlify
 - 11/28/20: Refactored a bit to better abstract out mapbox API, localStorage interactions
 - 6/14/20: Updates to the testing experience, take advantage of existing libraries to simplify things
 - 3/28/20: Audits, enabled Github workflows, also added extra accessiblity/aria context
