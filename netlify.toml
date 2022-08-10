@@ -1,0 +1,4 @@
+[build]
+	command = "echo \"export const ps = '$MAPBOX_TOKEN ';\" > src/appsettings.secrets.ts && npm run build"
+	publish = "public/"
+

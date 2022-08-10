@@ -13,14 +13,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jeffbdye/RunMap.git"
+    "url": "git+https://github.com/vincens2005/RunMap.git"
   },
   "author": "Jeff Dye",
   "license": "GPL-3.0-or-later",
   "bugs": {
-    "url": "https://github.com/jeffbdye/RunMap/issues"
+    "url": "https://github.com/vincens2005/RunMap/issues"
   },
-  "homepage": "https://github.com/jeffbdye/RunMap#readme",
+  "homepage": "https://github.com/vincens2005/RunMap#readme",
   "devDependencies": {
     "@ganbarodigital/jasmine-ts": "0.3.1",
     "@types/jasmine": "3.3.14",
