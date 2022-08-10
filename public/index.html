@@ -4,7 +4,8 @@
 <head>
   <title>Running Distance Map</title>
   <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <meta name="description" content="Map out your run's distance by dropping points along your expected route.">
+  <meta name="description" content="Map out your run's distance by dropping points along your expected route." />
+  <meta name="keywords" content="run map, map my run, runmap, running map, run, running, runs, map, ran, plan run, running route" />
 
   <link href="styles.css" rel="stylesheet" type="text/css">
   <link href="https://api.tiles.mapbox.com/mapbox-gl-js/v1.9.0/mapbox-gl.css" rel="stylesheet" type="text/css" />
@@ -20,57 +21,6 @@
 
 </head>
 
-<div id="settings-pane" aria-hidden="true">
-  <div id="settings-title">
-    <span>
-      RunMap
-    </span>
-    <button id="close-settings" aria-label="Close settings pane">
-      <!-- arrow_left  -->
-      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24">
-        <path fill="grey" d="M14 7l-5 5 5 5V7z" />
-        <path fill="none" d="M24 0v24H0V0h24z" />
-      </svg>
-    </button>
-  </div>
-  <ul id="style-list" aria-label="List of Mapbox styles to display the map in">
-    <li>
-      <button id="street-style" data-style="streets-v11">
-        Streets
-      </button>
-    </li>
-    <li>
-      <button id="satellite-style" data-style="satellite-streets-v11">
-        Satellite
-      </button>
-    </li>
-    <li>
-      <button id="dark-style" data-style="dark-v10">
-        Dark
-      </button>
-    </li>
-  </ul>
-  <ul id="settings-list" aria-label="List of settings for Runmap">
-    <li>
-      <button id="toggle-units" aria-label="Display the current run's distance in kilometers or miles">
-        Toggle km/mi
-      </button>
-    </li>
-    <li>
-      <button id="follow-roads" aria-label="When adding a new point to the run, should it follow roads or be a straight line">
-        Follow roads
-      </button>
-    </li>
-    <li>
-      <button id="clear-run" aria-label="Clear all points from the current run">
-        Clear run
-      </button>
-    </li>
-    <li>
-      <a href="about.html" target="_blank">About</a>
-    </li>
-  </ul>
-</div>
 
 <div id="settings-scrim" aria-hidden="true"></div>
 

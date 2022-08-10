@@ -10,6 +10,7 @@ export class PreferenceService {
   private USE_METRIC_KEY = 'runmap-use_metric';
   private FOLLOW_ROADS_KEY = 'runmap-follow_roads';
   private MAP_STYLE_KEY = 'runmap-map_style';
+  private LAST_RUN_KEY = 'runmap-last_run';
 
   public getLastOrDefaultFocus(): MapFocus {
     let initialPosition = JSON.parse(localStorage.getItem(this.LAST_FOCUS_KEY)) as MapFocus;
@@ -23,10 +24,10 @@ export class PreferenceService {
     return initialPosition;
   }
 
-  public saveCurrentFocus(pos: Position, zoom: number): void {
+  public saveCurrentFocus(position: GeolocationPosition, zoom: number): void {
     const currentFocus = {
-      lng: pos.coords.longitude,
-      lat: pos.coords.latitude,
+      lng: position.coords.longitude,
+      lat: position.coords.latitude,
       zoom: zoom
     } as MapFocus;
     this.saveJsonPreference(this.LAST_FOCUS_KEY, currentFocus);
@@ -54,6 +55,14 @@ export class PreferenceService {
 
   public saveMapStyle(value: string) {
     this.saveStringPreference(this.MAP_STYLE_KEY, value);
+  }
+  
+  public getLastRun(): string {
+    return this.loadStringPreference(this.LAST_RUN_KEY, "{}");
+  }
+  
+  public saveLastRun(value: string) {
+    this.saveStringPreference(this.LAST_RUN_KEY, value);
   }
 
   public getHasAcknowledgedHelp(): boolean {

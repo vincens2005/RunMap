@@ -17,7 +17,7 @@ let isWaiting = false;
 const initialFocus = preferenceService.getLastOrDefaultFocus();
 const mapStyle = getStyleById(preferenceService.getMapStyle());
 const mbk = /*atob(*/ps/*)*/;
-console.log(mbk);
+
 (mapboxgl as any)["accessToken"] = mbk;
 let map = new Map({
   pitchWithRotate: false,
@@ -33,25 +33,30 @@ let currentRun: CurrentRun = undefined;
 
 let animationService = new AnimationService(map);
 
-let lengthElement = document.getElementById('run-length');
-let unitsElement = document.getElementById('run-units');
-let menuElement = document.getElementById('menu-toggle');
+let lengthElement = document.getElementById('run-length') as HTMLElement;
+let unitsElement = document.getElementById('run-units') as HTMLElement;
+let menuElement = document.getElementById('menu-toggle') as HTMLElement;
 
-let settingsElement = document.getElementById('settings-pane');
-let closeElement = document.getElementById('close-settings');
-let scrimElement = document.getElementById('settings-scrim');
-let toggleUnitsElement = document.getElementById('toggle-units');
-let followRoadsElement = document.getElementById('follow-roads');
-let clearRunElement = document.getElementById('clear-run');
-let streetStyleElement = document.getElementById('street-style');
-let satelliteStyleElement = document.getElementById('satellite-style');
-let darkStyleElement = document.getElementById('dark-style');
+let settingsElement = document.getElementById('settings-pane') as HTMLElement;
+let closeElement = document.getElementById('close-settings') as HTMLElement;
+let scrimElement = document.getElementById('settings-scrim') as HTMLElement;
+let uploadContainer = document.getElementById('upload-container') as HTMLElement
+let uploadForm = document.getElementById('upload-form') as HTMLElement;
+let runInput = document.getElementById('run-input') as HTMLInputElement;
+let toggleUnitsElement = document.getElementById('toggle-units') as HTMLElement;
+let followRoadsElement = document.getElementById('follow-roads') as HTMLElement;
+let clearRunElement = document.getElementById('clear-run') as HTMLElement;
+let loadRunElement = document.getElementById('load-run') as HTMLElement;
+let saveRunElement = document.getElementById('save-run') as HTMLElement;
+let streetStyleElement = document.getElementById('street-style') as HTMLElement;
+let satelliteStyleElement = document.getElementById('satellite-style') as HTMLElement;
+let darkStyleElement = document.getElementById('dark-style') as HTMLElement;
 const mapStyleElements = [streetStyleElement, satelliteStyleElement, darkStyleElement];
 
-let removeLastElement = document.getElementById('remove-last');
+let removeLastElement = document.getElementById('remove-last') as HTMLElement;
 
-let helpElement = document.getElementById('help-notice');
-let dismissHelpElement = document.getElementById('dismiss-notice');
+let helpElement = document.getElementById('help-notice') as HTMLElement;
+let dismissHelpElement = document.getElementById('dismiss-notice') as HTMLElement;
 setupUserControls();
 
 map.on('load', () => {
@@ -66,10 +71,13 @@ map.on('load', () => {
         enableHighAccuracy: true
       },
       trackUserLocation: false
-    }).on('geolocate', (p: Position) => {
+    }).on('geolocate', (p: GeolocationPosition) => {
       preferenceService.saveCurrentFocus(p, map.getZoom());
     }),
     'bottom-right');
+    
+  jsonToRun(preferenceService.getLastRun());
+  if (currentRun !== undefined) showRunButtons();
 });
 
 // click or tap
@@ -79,19 +87,35 @@ map.on('click', (e: MapMouseEvent) => {
     addNewPoint(e);
   }
   const center = map.getCenter();
-  const pos = {
+  const position = {
     coords: {
       latitude: center.lat,
       longitude: center.lng
     }
-  } as Position;
-  preferenceService.saveCurrentFocus(pos, map.getZoom());
+  } as GeolocationPosition;
+  preferenceService.saveCurrentFocus(position, map.getZoom());
 });
 
 // triggered upon map style changed
 map.on('style.load', () => {
   animationService.readdRunToMap(currentRun);
 });
+
+function showRunButtons(): void {
+  removeLastElement.classList.remove('slide-out');
+  removeLastElement.classList.add('slide-in');
+  removeLastElement.setAttribute('aria-hidden', 'false');
+  saveRunElement.classList.remove('hidden');
+  clearRunElement.classList.remove('hidden');
+}
+
+function hideRunButtons(): void {
+  removeLastElement.classList.remove('slide-in');
+  removeLastElement.classList.add('slide-out');
+  removeLastElement.setAttribute('aria-hidden', 'true');
+  saveRunElement.classList.add('hidden');
+  clearRunElement.classList.add('hidden');
+}
 
 function addNewPoint(e: MapMouseEvent): void {
   if (currentRun === undefined) {
@@ -100,28 +124,27 @@ function addNewPoint(e: MapMouseEvent): void {
     );
     start.setMarker(addMarker(e.lngLat, true));
     currentRun = new CurrentRun(start);
-    removeLastElement.classList.remove('slide-out');
-    removeLastElement.classList.add('slide-in');
-    removeLastElement.setAttribute('aria-hidden', 'false');
+    showRunButtons();
     updateLengthElement();
   } else {
     let prev = currentRun.getLastPosition();
     if (followRoads) {
-      addSegmentFromDirectionsResponse(prev, e);
+      addSegmentFromDirectionsResponse(prev, e.lngLat);
     } else {
-      addSegmentFromStraightLine(prev, e);
+      addSegmentFromStraightLine(prev, e.lngLat);
     }
   }
   setWaiting(false);
+  setTimeout(() => preferenceService.saveLastRun(runToJson(currentRun)), 100); // for some reason this won't save right without a delay
 }
 
-function addSegmentFromDirectionsResponse(previousLngLat: LngLat, e: MapMouseEvent) {
-  nextSegmentService.getSegmentFromDirectionsService(previousLngLat, e.lngLat)
+function addSegmentFromDirectionsResponse(previousLngLat: LngLat, lngLat: LngLat, animate = true) {
+  return nextSegmentService.getSegmentFromDirectionsService(previousLngLat, lngLat)
     .then((newSegment: RunSegment) => {
 
       const line = newSegment.geometry as LineString;
       const coordinates = line.coordinates;
-      animationService.animateSegment(newSegment);
+      if (animate) animationService.animateSegment(newSegment);
 
       // use ending coordinate from route for the marker
       const segmentEnd = coordinates[coordinates.length - 1];
@@ -133,13 +156,101 @@ function addSegmentFromDirectionsResponse(previousLngLat: LngLat, e: MapMouseEve
     });
 }
 
-function addSegmentFromStraightLine(previousLngLat: LngLat, e: MapMouseEvent): void {
-  const newSegment = nextSegmentService.segmentFromStraightLine(previousLngLat, e.lngLat);
+function addSegmentFromStraightLine(previousLngLat: LngLat, lngLat: LngLat, animate = true): void {
+  const newSegment = nextSegmentService.segmentFromStraightLine(previousLngLat, lngLat);
 
-  animationService.animateSegment(newSegment);
-  const marker = addMarker(e.lngLat, false);
+  if (animate) animationService.animateSegment(newSegment);
+  const marker = addMarker(lngLat, false);
   currentRun.addSegment(newSegment, marker);
   updateLengthElement();
+}
+
+function runToJson(run: CurrentRun): string {
+  if (run === undefined) return "{}";
+  let runJSON: {[name:string]: any} = {
+    start: {
+      lng: run.start.lngLat.lng,
+      lat: run.start.lngLat.lat,
+    },
+    distance: run.distance,
+    segments: [],
+    followRoads
+  };
+  for (let i in run.segments) {
+    runJSON.segments.push({
+      lng: run.segments[i].lngLat.lng,
+      lat: run.segments[i].lngLat.lat,
+      followsRoads: run.segments[i].followsRoads
+    });
+  }
+  return JSON.stringify(runJSON);
+}
+
+function jsonToRun(json: string, changeView: boolean = false): boolean {
+  try { 
+    let runJSON = JSON.parse(json);
+    let lngLat = new LngLat(runJSON.start.lng, runJSON.start.lat);
+    let start = new RunStart(lngLat);
+    start.setMarker(addMarker(lngLat, true));
+    let newRun = new CurrentRun(start);
+    let prev = lngLat;
+    for (let i = 0; i < runJSON.segments.length; i++) {
+      let lngLat = new LngLat(runJSON.segments[i].lng, runJSON.segments[i].lat);
+      if (runJSON.segments[i].followsRoads) {
+        addSegmentFromDirectionsResponse(prev, lngLat, false);
+      } else {
+        addSegmentFromStraightLine(prev, lngLat, false);
+      }
+      prev = lngLat;
+    }
+    clearRun(false);
+    currentRun = newRun;
+    if (changeView) {
+      map.flyTo({
+        center: [runJSON.start.lng, runJSON.start.lat],
+        zoom: 14
+      });
+    }
+    return true;
+  }
+  catch (err) {
+    console.log(err);
+    return false;
+  }
+  finally {
+    setTimeout(() => animationService.readdRunToMap(currentRun), 150);
+  }
+}
+
+function downloadRun(): void {
+  let run = runToJson(currentRun);
+  let file = new Blob([run], {
+    type: "application/json"
+  });
+  let url = URL.createObjectURL(file);
+  let link = document.createElement("a");
+  link.href = url;
+  let date = new Date();
+  link.download = `run-${date.getMonth() + 1}-${date.getDate()}-${date.getFullYear() % 100}.runmap`;
+  link.click();
+}
+
+function showUploadForm(): void {
+  closeMenu(false);
+  uploadContainer.classList.add("showing-form");
+  uploadContainer.setAttribute('aria-hidden', 'false');
+  runInput.value = "";
+}
+
+async function loadRun(e: Event): Promise<void> {
+  e.preventDefault();
+  if (!runInput.files.length) return void (runInput.parentElement.querySelector("span").innerText = "No file selected");
+  let json = await runInput.files[0].text();
+  let loadsuccessful = jsonToRun(json, true);
+  if (!loadsuccessful) return void (runInput.parentElement.querySelector("span").innerText = "Error loading run");
+  closeMenu();
+  showRunButtons();
+  setTimeout(() => preferenceService.saveLastRun(runToJson(currentRun)), 100);
 }
 
 function setupUserControls(): void {
@@ -152,19 +263,26 @@ function setupUserControls(): void {
   lengthElement.onclick = toggleDistanceUnits;
 
   menuElement.onclick = openMenu;
-  closeElement.onclick = closeMenu;
-  scrimElement.onclick = closeMenu;
+  closeElement.onclick = () => closeMenu();
+  scrimElement.onclick = () => closeMenu();
   toggleUnitsElement.onclick = () => closeMenuAction(toggleDistanceUnits);
 
   setFollowRoads(followRoads);
   followRoadsElement.onclick = () => closeMenuAction(toggleFollowRoads);
   clearRunElement.onclick = () => closeMenuAction(clearRun);
+  loadRunElement.onclick = showUploadForm;
+  saveRunElement.onclick = () => closeMenuAction(downloadRun);
 
   const id = preferenceService.getMapStyle();
-  setSelectedMapToggleStyles(document.getElementById(id));
+  setSelectedMapToggleStyles(document.getElementById(id) as HTMLElement);
   streetStyleElement.onclick = () => closeMenuAction(() => setSelectedMapToggleStyles(streetStyleElement));
   satelliteStyleElement.onclick = () => closeMenuAction(() => setSelectedMapToggleStyles(satelliteStyleElement));
   darkStyleElement.onclick = () => closeMenuAction(() => setSelectedMapToggleStyles(darkStyleElement));
+  
+  runInput.onchange = () => {
+    runInput.parentElement.querySelector("span").innerText = runInput.files[0].name;
+  }
+  uploadForm.onsubmit = loadRun;
 }
 
 function closeMenuAction(fn: () => void) {
@@ -218,16 +336,16 @@ function removeLastSegment(): void {
     currentRun.start.marker.remove();
     updateLengthElement();
     currentRun = undefined;
-    removeLastElement.classList.remove('slide-in');
-    removeLastElement.classList.add('slide-out');
-    removeLastElement.setAttribute('aria-hidden', 'true');
+    hideRunButtons();
   }
+  preferenceService.saveLastRun(runToJson(currentRun));
 }
 
-function clearRun(): void {
+function clearRun(commit: boolean = true): void {
   while (currentRun) {
     removeLastSegment();
   }
+  if (commit) preferenceService.saveLastRun(runToJson(currentRun));
 }
 
 function updateLengthElement(): void {
@@ -258,11 +376,15 @@ function openMenu() {
   scrimElement.classList.add('scrim-shown');
 }
 
-function closeMenu() {
+function closeMenu(hideForm: boolean = true) {
   settingsElement.classList.remove('settings-open');
   settingsElement.setAttribute('aria-hidden', 'true');
+  if (!hideForm) return;
+  uploadContainer.classList.remove("showing-form");
+  uploadContainer.setAttribute('aria-hidden', 'true');
   scrimElement.classList.remove('scrim-shown');
   scrimElement.classList.add('scrim-hidden');
+  runInput.parentElement.querySelector("span").innerText = "drag a file or click here";
 }
 
 function setFollowRoads(value: boolean) {
