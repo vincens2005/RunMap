@@ -19,22 +19,46 @@
   <meta name="msapplication-TileColor" content="#2b5797">
   <meta name="theme-color" content="#ffffff">
 
-  <!-- Feel free to adblock this :) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-135658845-1"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
-    gtag('js', new Date());
-
-    gtag('config', 'UA-135658845-1');
-  </script>
 </head>
 
-<body>
-  <h1>RunMap.run</h1>
-  <h2>
-    Down for maintenance at the moment, thanks for your support!
-  </h2>
-</body>
+
+<div id="settings-scrim" aria-hidden="true"></div>
+
+<div id="mapbox-container"></div>
+<div id="menu-container" class="map-overlay">
+  <button id="menu-toggle" aria-label="Open settings pane">
+    <!-- menu -->
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24">
+      <path d="M0 0h24v24H0z" fill="none" />
+      <path fill="white" d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" />
+    </svg>
+  </button>
+</div>
+<div id="run-length-container" class="map-overlay">
+  <span id="run-length" title="Toggle mi/km"></span>
+  <span id="run-units"></span>
+</div>
+
+<div id="remove-last" class="map-overlay" title="Remove last point from the run">
+  <!-- undo -->
+  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="24" viewBox="0 0 24 24">
+    <path d="M0 0h24v24H0z" fill="none" />
+    <path fill="white" d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z" />
+  </svg>
+  <span id="last-label">
+    Remove last marker
+  </span>
+</div>
+
+<div id="help-notice" class="map-overlay" style="display: none">
+  <div>
+    Click/tap anywhere on the map to add points in order to map out your run! See the <a target="_blank" href="about.html">about page</a> to
+    learn more.
+  </div>
+  <button id="dismiss-notice">Got it!</button>
+</div>
+
+<script src="vendor.js"></script>
+<script src="app.js"></script>
 
 </html>
