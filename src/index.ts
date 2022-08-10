@@ -16,8 +16,9 @@ let isWaiting = false;
 
 const initialFocus = preferenceService.getLastOrDefaultFocus();
 const mapStyle = getStyleById(preferenceService.getMapStyle());
-const mbk = atob(ps);
-(mapboxgl as any)[atob('YWNjZXNzVG9rZW4=')] = mbk;
+const mbk = /*atob(*/ps/*)*/;
+
+(mapboxgl as any)["accessToken"] = mbk;
 let map = new Map({
   pitchWithRotate: false,
   center: [initialFocus.lng, initialFocus.lat],
